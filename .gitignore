@@ -1,3 +1,6 @@
 node_modules
 dist
 .DS_Store
+deck/node_modules
+deck/*.pdf
+deck/slide-*.jpg
