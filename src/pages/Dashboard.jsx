@@ -1,0 +1,93 @@
+import { Panel, MetricCard, EmptyState, Button, Badge, Note, Th } from "../ui.jsx";
+import { STATE_TONE } from "../data.js";
+
+export default function DashboardPage({ store, persona }) {
+  const { sources, findings, exceptions, tasks, verifiedClosedRate, unownedRestricted, avgCoverage, openGaps, slaAdherence, activeExceptions, actions } = store;
+  const labels = ["Public", "Internal", "Confidential", "Restricted"];
+  const live = findings.filter((f) => !["Rejected", "Superseded"].includes(f.state));
+  const heat = sources.map((s) => ({ name: s.name, coverage: s.coverage, state: s.connectorState, counts: labels.map((l) => live.filter((f) => f.sourceId === s.id && f.label === l).length) }));
+  const pending = exceptions.filter((e) => e.state === "Requested" && (e.tier === 2 || e.kind === "policy"));
+  const openTasks = tasks.filter((t) => !["Verified Closed", "Cancelled"].includes(t.state));
+  const readOnly = persona.readOnly;
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <MetricCard label="Verified-Closed Rate (north star)" value={`${verifiedClosedRate}%`} sub="Owned, remediated and evidenced" tone="text-emerald-600" />
+        <MetricCard label="Unowned Restricted Stores" value={unownedRestricted} sub="Unowned is itself a risk state" tone={unownedRestricted > 0 ? "text-red-600" : "text-emerald-600"} />
+        <MetricCard label="Scan Coverage" value={`${avgCoverage}%`} sub={openGaps ? `${openGaps} open coverage gap${openGaps > 1 ? "s" : ""}` : "No open coverage gaps"} tone={openGaps ? "text-amber-600" : undefined} />
+        <MetricCard label="Tier-2 Approvals Pending" value={pending.length} sub="Require POL + ASR-A" tone={pending.length > 0 ? "text-amber-600" : "text-emerald-600"} />
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-4">
+        <Panel title="1 · Coverage" subtitle="A “no findings” result is only meaningful next to coverage.">
+          <ul className="text-xs text-slate-600 space-y-1.5">
+            <li className="flex justify-between"><span>Sources registered</span><b>{sources.length}</b></li>
+            <li className="flex justify-between"><span>Sources scanned</span><b>{sources.filter((s) => s.status !== "Not Yet Scanned").length}</b></li>
+            <li className="flex justify-between"><span>Connectors degraded</span><b className={sources.some((s) => s.connectorState === "Degraded") ? "text-red-600" : ""}>{sources.filter((s) => s.connectorState === "Degraded").length}</b></li>
+            <li className="flex justify-between"><span>Historical coverage gaps (retained)</span><b>{sources.flatMap((s) => s.coverageGaps).length}</b></li>
+          </ul>
+        </Panel>
+        <Panel title="2 · Control effectiveness" subtitle="Did the control operate, not just exist?">
+          <ul className="text-xs text-slate-600 space-y-1.5">
+            <li className="flex justify-between"><span>Open remediation tasks</span><b>{openTasks.length}</b></li>
+            <li className="flex justify-between"><span>Pending verification</span><b>{tasks.filter((t) => t.state === "Pending Verification").length}</b></li>
+            <li className="flex justify-between"><span>Verification pass rate</span><b>{slaAdherence}%</b></li>
+            <li className="flex justify-between"><span>Findings under review</span><b>{findings.filter((f) => f.state === "Under Review").length}</b></li>
+          </ul>
+        </Panel>
+        <Panel title="3 · Exceptions" subtitle="Risk acceptance is time-bound and approved. No snooze exists.">
+          <ul className="text-xs text-slate-600 space-y-1.5">
+            <li className="flex justify-between"><span>Active exceptions</span><b>{activeExceptions}</b></li>
+            <li className="flex justify-between"><span>Expired (renewal required)</span><b>{exceptions.filter((e) => e.state === "Expired").length}</b></li>
+            <li className="flex justify-between"><span>Revoked</span><b>{exceptions.filter((e) => e.state === "Revoked").length}</b></li>
+            <li className="flex justify-between"><span>Awaiting approval</span><b>{exceptions.filter((e) => e.state === "Requested").length}</b></li>
+          </ul>
+        </Panel>
+      </div>
+
+      <Panel title="Sensitive-data landscape — sources × classification" subtitle="Counts of live findings. Coverage shown so gaps are never mistaken for clean stores.">
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead><tr><Th>Source</Th>{labels.map((l) => <Th key={l} className="text-center">{l}</Th>)}<Th className="text-right">Coverage</Th></tr></thead>
+            <tbody>
+              {heat.map((row) => (
+                <tr key={row.name} className="border-t border-slate-100">
+                  <td className="py-2 pr-4">{row.name} {row.state === "Degraded" && <Badge tone={STATE_TONE.Degraded}>Degraded</Badge>}</td>
+                  {row.counts.map((c, i) => (
+                    <td key={i} className="py-2 text-center">
+                      {c > 0 ? <span className="inline-flex items-center justify-center w-7 h-7 rounded text-white text-[11px] font-medium" style={{ backgroundColor: i === 3 ? "#B91C1C" : i === 2 ? "#C2410C" : i === 1 ? "#2F5FA3" : "#94A3B8" }}>{c}</span> : <span className="text-slate-300">—</span>}
+                    </td>
+                  ))}
+                  <td className={`py-2 text-right ${row.coverage < 60 ? "text-red-600 font-medium" : "text-slate-500"}`}>{row.coverage}%</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Panel>
+
+      <Panel title="4 · Tier-2 approval queue — CISO sign-off" subtitle="Tier-2 exceptions require POL and ASR-A. High-risk policy changes require ASR-A. The requester can never approve.">
+        {pending.length === 0 ? <EmptyState text="Nothing currently requires Tier-2 approval." /> : (
+          <div className="space-y-2">
+            {pending.map((e) => {
+              const c = actions.canApprove(e);
+              return (
+                <div key={e.id} className="flex items-center justify-between border border-slate-100 rounded-md px-3 py-2 gap-3">
+                  <div>
+                    <div className="font-medium flex items-center gap-2">{e.scope} <Badge>{e.kind === "policy" ? "Policy · high-risk" : `Tier ${e.tier}`}</Badge></div>
+                    <div className="text-xs text-slate-400">Requested by {e.requestedBy.name} ({e.requestedBy.code}) — {e.reason}</div>
+                    <div className="text-xs text-slate-400">Approvals: {e.approvals.length ? e.approvals.map((a) => a.code).join(", ") : "none yet"} · Required: {e.kind === "policy" ? "ASR-A" : "POL + ASR-A"}</div>
+                  </div>
+                  {!readOnly && <Button onClick={() => actions.approveException(e.id)} disabled={!c.ok} title={c.why}>Approve as {persona.code}</Button>}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </Panel>
+
+      {readOnly && <Note tone="blue">You are viewing as an external assurance reviewer. All controls are read-only. Every action you take, including report export, is itself logged as evidence.</Note>}
+    </div>
+  );
+}
