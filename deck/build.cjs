@@ -9,8 +9,9 @@ const W = 13.33;
 
 const T = (s, text, o) => s.addText(text, { fontFace: BFONT, color: INK, isTextBox: true, margin: 0, valign: "top", ...o });
 const title = (s, text, sub, dark) => {
-  T(s, text, { x: 0.6, y: 0.45, w: 12.1, h: 0.75, fontSize: 32, bold: true, fontFace: HFONT, color: dark ? WHITE : NAVY });
-  if (sub) T(s, sub, { x: 0.6, y: 1.2, w: 12.1, h: 0.4, fontSize: 15, color: dark ? "CBD5E1" : SLATE, italic: true });
+  const long = text.length > 56;
+  T(s, text, { x: 0.6, y: 0.4, w: 12.1, h: 0.8, fontSize: long ? 25 : 32, bold: true, fontFace: HFONT, color: dark ? WHITE : NAVY, valign: "middle" });
+  if (sub) T(s, sub, { x: 0.6, y: 1.28, w: 12.1, h: 0.4, fontSize: 14, color: dark ? "CBD5E1" : SLATE, italic: true });
 };
 const footer = (s, n, dark) => T(s, `AegisData · TPM assignment · ${n}`, { x: 0.6, y: 7.05, w: 12.1, h: 0.25, fontSize: 9, color: dark ? "64748B" : MUTED });
 const rect = (s, x, y, w, h, fill, o = {}) => s.addShape(pres.ShapeType.roundRect, { x, y, w, h, fill: { color: fill }, line: { color: o.line || fill, width: o.lw ?? 0.75 }, rectRadius: o.r ?? 0.08, ...(o.shadow ? { shadow: { type: "outer", blur: 6, offset: 2, angle: 90, color: "000000", opacity: 0.12 } } : {}) });
@@ -58,7 +59,7 @@ const table = (s, rows, x, y, w, colW, o = {}) => {
   rect(s, 0.6, 5.1, 12.1, 1.6, ICE, { line: ICE });
   T(s, "$2.2B → $6.2B", { x: 0.9, y: 5.25, w: 3.6, h: 0.7, fontSize: 30, bold: true, fontFace: HFONT, color: NAVY });
   T(s, "Global DSPM category, 2025 → 2033 (≈14% CAGR). Context only, not the planning number.", { x: 0.9, y: 5.95, w: 3.6, h: 0.6, fontSize: 11, color: SLATE });
-  T(s, "≈ ₹225 crore (~$27M)", { x: 4.9, y: 5.25, w: 4, h: 0.7, fontSize: 30, bold: true, fontFace: HFONT, color: NAVY });
+  T(s, "≈ ₹225 cr (~$27M)", { x: 4.9, y: 5.25, w: 4, h: 0.7, fontSize: 28, bold: true, fontFace: HFONT, color: NAVY });
   T(s, "Bottom-up India SAM: ≈500 large health systems and health-tech BAs × ≈₹45 lakh ACV. Stated assumption, to be re-derived with design-partner data.", { x: 4.9, y: 5.95, w: 4, h: 0.7, fontSize: 11, color: SLATE });
   T(s, "Buyer: CISO. Co-buyer: DPO.", { x: 9.3, y: 5.25, w: 3.2, h: 0.5, fontSize: 16, bold: true, color: NAVY });
   T(s, "Initial ICP: large and mid-large Indian providers with hybrid estates, M&A sprawl and distributed ownership.", { x: 9.3, y: 5.75, w: 3.2, h: 0.9, fontSize: 11, color: SLATE });
@@ -171,8 +172,8 @@ const table = (s, rows, x, y, w, colW, o = {}) => {
   const s = pres.addSlide(); title(s, "Lead with hybrid-SaaS. Offer on-premises as a defined variant.", "Scan-in-place already keeps raw PHI inside the customer. Deployment model only decides where metadata lives.");
   const m = [["On-premises", "Full stack inside customer infrastructure. Government, strict BFSI, no-egress mandates.", "Nothing leaves customer control", WHITE], ["Hybrid-SaaS (recommended)", "SaaS management plane pinned to an India region. In-perimeter scan agents. Large health systems needing agility with residency.", "Metadata only; region-pinned to ap-south-1 or Central India", STEEL], ["SaaS", "Pooled management plane, agents in customer environment. Mid-market wanting time-to-value.", "Metadata only", WHITE]];
   m.forEach(([h, b, r, fill], i) => { const x = 0.6 + i * 4.1, dark = fill === STEEL; rect(s, x, 1.85, 3.9, 2.35, fill, { line: dark ? fill : LINE, shadow: !dark }); T(s, h, { x: x + 0.2, y: 2.0, w: 3.5, h: 0.4, fontSize: 15, bold: true, color: dark ? WHITE : NAVY }); T(s, b, { x: x + 0.2, y: 2.45, w: 3.5, h: 1.0, fontSize: 11.5, color: dark ? "E2E8F0" : SLATE }); T(s, "Residency: " + r, { x: x + 0.2, y: 3.55, w: 3.5, h: 0.55, fontSize: 10.5, italic: true, color: dark ? "CADCFC" : AMBER }); });
-  T(s, "Why not pure SaaS: providers with material PHI estates reject any raw-data path leaving the perimeter. Why not on-prem first: it slows time-to-value and multiplies ops burden before product-market fit.", { x: 0.6, y: 4.35, w: 12.1, h: 0.5, fontSize: 11.5, italic: true, color: SLATE });
-  table(s, [["Non-functional target", "Value", "How"], ["Incremental scan latency", "< 15 min p95", "Native change feeds (CDC, delta tokens, storage events)"], ["Full-scan throughput", "≥ 5,000 objects/s per node", "Metadata-first triage, enumeration decoupled from classification"], ["Dashboard latency", "< 2 s p95", "Catalogue read replicas"], ["Catalogue write availability", "99.9%", "Multi-AZ; idempotent, checkpointed jobs; per-connector circuit breakers"], ["Source impact", "≤ 5% IOPS/CPU headroom", "Adaptive throttling, maintenance windows for heavy scans"], ["Encryption / identity", "AES-256, TLS 1.3, mTLS, tenant keys", "Envelope encryption, CMK for BFSI/government, Keycloak OIDC/SAML"]], 0.6, 4.95, 12.1, [3.2, 2.9, 6.0], { fs: 10.5, rowH: 0.3 });
+  T(s, "Why not pure SaaS: providers with material PHI estates reject any raw-data path leaving the perimeter. Why not on-prem first: it slows time-to-value and multiplies ops burden before product-market fit.", { x: 0.6, y: 4.3, w: 12.1, h: 0.45, fontSize: 11, italic: true, color: SLATE });
+  table(s, [["Non-functional target", "Value", "How"], ["Incremental scan latency", "< 15 min p95", "Native change feeds (CDC, delta tokens, storage events)"], ["Full-scan throughput", "≥ 5,000 objects/s per node", "Metadata-first triage, enumeration decoupled from classification"], ["Dashboard latency", "< 2 s p95", "Catalogue read replicas"], ["Catalogue write availability", "99.9%", "Multi-AZ; idempotent, checkpointed jobs; per-connector circuit breakers"], ["Source impact", "≤ 5% IOPS/CPU headroom", "Adaptive throttling, maintenance windows for heavy scans"], ["Encryption / identity", "AES-256, TLS 1.3, mTLS, tenant keys", "Envelope encryption, CMK for BFSI/government, Keycloak OIDC/SAML"]], 0.6, 4.8, 12.1, [3.2, 2.9, 6.0], { fs: 10.5, rowH: 0.3 });
   footer(s, 11);
 }
 
