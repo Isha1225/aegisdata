@@ -1,18 +1,18 @@
 import { X } from "lucide-react";
 
 const STEPS = [
-  ["ASR-A", "Executive Posture", "Note the Verified-Closed Rate, unowned Restricted stores, and the open coverage gap on Claims SFTP."],
-  ["OPS", "Connector Health", "Show the Degraded connector and its open gap. Restore it. The gap closes but the record stays. Notice OPS never sees a finding."],
-  ["ANL", "Triage Queue", "Start review on the Detected card-number finding, then Confirm. Watch the policy engine fire Restricted + External → P0 and create a task."],
-  ["ANL", "Ownership assignment", "Assign Priya Menon as owner. The store stays Unowned until she accepts."],
-  ["OWN", "My Tasks", "Accept ownership (SLA activates). Start work. Mark complete. It only moves to Pending Verification. Run the verification scan."],
-  ["OWN", "My Tasks", "Run verification on the FHIR task that is seeded to fail. It reopens to In Progress. Attestation never closes a task."],
-  ["OWN", "My Tasks", "Try Dispute label. The owner cannot reclassify. Request an exception and notice it goes to POL + ASR-A."],
-  ["POL", "Approvals Inbox", "Approve the Tier-2 exception as POL. It stays Requested at 1 of 2. Switch to ASR-A to complete it. Try to approve your own request: blocked."],
-  ["POL", "Policies", "Draft a rule change, Simulate against the live estate, see blast radius, then Submit. High-risk changes need ASR-A."],
-  ["POL", "Compliance → Located-instance", "Search an MRN. It is hashed locally. Create an erasure task on a located store."],
-  ["ASR-R", "Evidence Center", "Verify chain integrity. Every action above is a hash-chained event. Export writes its own event."],
-  ["ASR-A", "Executive Posture", "The Verified-Closed Rate moved. That is the accountability loop, end to end."],
+  ["ASR-A", "Executive Posture", "Note the P0 panel: a Restricted HL7 task is already escalated because its owner never acknowledged. Note the Verified-Closed Rate."],
+  ["ANL", "Triage Queue", "Click the P0 finding name to open Why P0: risk 94/100, factors, policy v1.2, regulatory scope. Start review, then Confirm classification."],
+  ["ANL", "Triage Queue", "The Task Decision Engine creates the task: action, accountable, executor, four SLA targets, evidence, approval, escalation. Assign owner with reason and scope. Status: Awaiting Acceptance, store Unowned."],
+  ["OWN", "My Tasks", "The red acceptance card shows Why P0, SLA, time remaining and escalation consequence. Accept ownership. The ack clock stops; the task starts."],
+  ["OWN", "My P0 Task", "Read What happened / Why it matters / What must I do. Record action with containment ticked: the 30-minute clock stops. Resolution keeps running."],
+  ["OWN", "My P0 Task", "Try Pause: reason, next action, review date, SLA treatment shown (P0 continues). Try Delegate: executor changes, accountability stays."],
+  ["OWN", "My P0 Task", "Submit for verification. There is no Mark Complete. Run verification. On the seeded FHIR task, watch it fail and reopen to In Progress automatically."],
+  ["ANL", "Escalation monitor", "Press +25 min on a task awaiting acceptance. Watch it move At Risk → SLA Breached → Escalated to ANL, then ASR-A."],
+  ["POL", "Approvals Inbox", "An exception raised by the owner arrives here. POL cannot approve their own request; Tier-2 also needs ASR-A."],
+  ["OPS", "Connector Health", "No findings, classifications or remediation decisions are visible. Only connector health and coverage gaps."],
+  ["ASR-R", "Evidence Center", "Verify chain integrity. Every step above is a hash-chained event. The task's own timeline shows the full sequence with actors and times."],
+  ["ASR-A", "Executive Posture", "The Verified-Closed Rate moved. Risk became an accountable, executed, verified and evidenced action."],
 ];
 
 export default function DemoGuide({ onClose }) {

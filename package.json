@@ -7,7 +7,9 @@
     "dev": "vite --port ${PORT:-5180}",
     "build": "vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "npm run build && npx --yes netlify-cli deploy --prod --dir=dist",
+    "deploy:draft": "npm run build && npx --yes netlify-cli deploy --dir=dist"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",

@@ -1,8 +1,17 @@
 import { Panel, MetricCard, EmptyState, Button, Badge, Note, Th } from "../ui.jsx";
-import { STATE_TONE } from "../data.js";
+import { useState } from "react";
+import { STATE_TONE, PRIORITY_TONE } from "../data.js";
+import { slaClocks, escalationStatus, fmtDuration } from "../decision.js";
+import { TaskDetail } from "../components/TaskOps.jsx";
+import { ownerName } from "../store.js";
+const ESC_TONE = { "On Track": "bg-emerald-50 text-emerald-700", "At Risk": "bg-amber-50 text-amber-800", "Escalated": "bg-orange-50 text-orange-800", "SLA Breached": "bg-red-50 text-red-700" };
 
 export default function DashboardPage({ store, persona }) {
-  const { sources, findings, exceptions, tasks, verifiedClosedRate, unownedRestricted, avgCoverage, openGaps, slaAdherence, activeExceptions, actions } = store;
+  const { sources, findings, exceptions, tasks, verifiedClosedRate, unownedRestricted, avgCoverage, openGaps, slaAdherence, activeExceptions, actions, now } = store;
+  const [openId, setOpenId] = useState(null);
+  const critical = tasks.map((t) => ({ t, f: findings.find((x) => x.id === t.findingId) })).filter(({ t, f }) => f && !["Verified Closed", "Cancelled"].includes(t.state) && (t.priority === "P0" || (t.escalations || []).length > 0 || t.lastVerification?.result === "Failed"));
+  const opened = openId && critical.find(({ t }) => t.id === openId);
+  if (opened) return <TaskDetail task={opened.t} finding={opened.f} source={sources.find((x) => x.id === opened.f.sourceId)} decision={store.decisionFor(opened.f, opened.t.priority)} store={store} persona={persona} readOnly onBack={() => setOpenId(null)} />;
   const labels = ["Public", "Internal", "Confidential", "Restricted"];
   const live = findings.filter((f) => !["Rejected", "Superseded"].includes(f.state));
   const heat = sources.map((s) => ({ name: s.name, coverage: s.coverage, state: s.connectorState, counts: labels.map((l) => live.filter((f) => f.sourceId === s.id && f.label === l).length) }));
@@ -18,6 +27,23 @@ export default function DashboardPage({ store, persona }) {
         <MetricCard label="Scan Coverage" value={`${avgCoverage}%`} sub={openGaps ? `${openGaps} open coverage gap${openGaps > 1 ? "s" : ""}` : "No open coverage gaps"} tone={openGaps ? "text-amber-600" : undefined} />
         <MetricCard label="Tier-2 Approvals Pending" value={pending.length} sub="Require POL + ASR-A" tone={pending.length > 0 ? "text-amber-600" : "text-emerald-600"} />
       </div>
+
+      <Panel title={`P0 findings, escalations, SLA breaches and verification failures (${critical.length})`} subtitle="Assurance view. High-risk unresolved issues with who is accountable, whether they accepted, and where the clocks stand.">
+        {critical.length === 0 ? <EmptyState text="No P0, escalated or failed-verification tasks open." /> : (
+          <table className="w-full text-xs"><thead><tr className="text-left text-slate-400"><th className="py-2 pr-3 font-medium">Priority</th><th className="py-2 pr-3 font-medium">Finding</th><th className="py-2 pr-3 font-medium">State</th><th className="py-2 pr-3 font-medium">Accountable</th><th className="py-2 pr-3 font-medium">Escalation</th><th className="py-2 pr-3 font-medium">Next clock</th><th></th></tr></thead>
+            <tbody>{critical.map(({ t, f }) => { const esc = escalationStatus(t, now); const live = (slaClocks(t, now) || []).filter((c) => c.remaining !== undefined).sort((a, b) => a.remaining - b.remaining)[0]; return (
+              <tr key={t.id} className="border-t border-slate-100">
+                <td className="py-2 pr-3"><Badge tone={PRIORITY_TONE[t.priority]}>{t.priority}</Badge></td>
+                <td className="py-2 pr-3"><div className="font-medium">{f.title || f.dataType}</div><div className="text-slate-400">{sources.find((x) => x.id === f.sourceId)?.name}</div></td>
+                <td className="py-2 pr-3"><Badge tone={STATE_TONE[t.state]}>{t.state}</Badge>{t.lastVerification?.result === "Failed" && <div className="text-[10px] text-red-700">verification failed</div>}</td>
+                <td className="py-2 pr-3">{f.ownerId ? ownerName(f.ownerId) : f.ownership === "Assigned" ? `proposed ${ownerName(f.proposedOwnerId)}` : "Unowned"}<div className="text-[10px] text-slate-400">{f.ownership === "Assigned" ? "Awaiting Acceptance" : f.ownership}</div></td>
+                <td className="py-2 pr-3">{t.createdAt ? <><Badge tone={ESC_TONE[esc.status]}>{esc.status}</Badge>{t.escalations?.length > 0 && <div className="text-[10px] text-red-700">→ {t.escalations.map((e) => e.to).join(", ")}</div>}</> : <span className="text-slate-300">—</span>}</td>
+                <td className="py-2 pr-3 font-mono">{live ? <span className={live.remaining < 0 ? "text-red-600" : ""}>{live.label} {fmtDuration(live.remaining)}</span> : "—"}</td>
+                <td className="py-2"><Button small variant="ghost" onClick={() => setOpenId(t.id)}>Open</Button></td>
+              </tr>
+            ); })}</tbody></table>
+        )}
+      </Panel>
 
       <div className="grid lg:grid-cols-3 gap-4">
         <Panel title="1 · Coverage" subtitle="A “no findings” result is only meaningful next to coverage.">

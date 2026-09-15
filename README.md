@@ -16,6 +16,27 @@ npm run dev
 Open the printed URL (default `http://localhost:5180`). Use **Reset** in the top bar to
 return to seed data.
 
+## Deploy to Netlify (one command)
+
+```bash
+npm run deploy
+```
+
+This builds `dist/` and publishes it to production through the Netlify CLI. The first run asks you to
+log in and to create or link a site. `npm run deploy:draft` publishes a preview URL instead.
+`netlify.toml` sets the build command, the publish folder and the SPA redirect, so connecting the
+Git repository in the Netlify UI also works with no extra configuration.
+
+## P0 operational layer
+
+Confirming a finding runs the Task Decision Engine (`src/decision.js`). One policy object per
+priority drives priority, urgency, the four SLA clocks (acknowledge, initial containment,
+resolution, verification), required action, evidence, approval, pause treatment, escalation chain
+and the step-by-step procedure. Assignment proposes an owner; the store stays Unowned until
+acceptance. Owners record actions and submit for independent verification; there is no
+"mark complete". Failed verification reopens the task. Every event lands in an append-only task
+timeline. Use the **Demo clock** buttons to advance time and trigger automatic escalation.
+
 ## What the prototype enforces
 
 - **Persona-scoped navigation.** Six personas (ASR-A, POL, OWN, ANL, OPS, ASR-R). Only pages
