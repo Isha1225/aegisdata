@@ -4,3 +4,6 @@ dist
 deck/node_modules
 deck/*.pdf
 deck/slide-*.jpg
+
+# Local Netlify folder
+.netlify

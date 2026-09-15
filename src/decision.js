@@ -85,6 +85,7 @@ const CRITICALITY = { Critical: 15, High: 10, Standard: 5 };
 export function regulatoryScope(finding) {
   const s = [];
   if (finding.identifierTypes?.includes("Card PAN")) s.push("PCI-DSS Req. 3, 7, 10");
+  if (finding.identifierTypes?.includes("MRN")) s.push("HIPAA Security Rule 45 CFR §164.308–312");
   if (finding.label === "Restricted") s.push("DPDP Act 2023 (sensitive personal data)", "GDPR Art. 9 / Art. 32");
   else if (finding.label === "Confidential") s.push("DPDP Act 2023 (personal data)", "GDPR Art. 32");
   return s.length ? s : ["No regulatory scope identified"];

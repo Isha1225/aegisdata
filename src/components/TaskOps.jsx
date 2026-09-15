@@ -211,7 +211,7 @@ export function TaskDetail({ task, finding, source, decision, store, persona, re
 
       <div className="grid lg:grid-cols-3 gap-4">
         <Panel title="What happened?"><div className="text-xs text-slate-700">{finding.plain}</div>{finding.accessPath && <div className="text-[11px] text-slate-500 mt-2"><b>Access path:</b> {finding.accessPath}</div>}</Panel>
-        <Panel title="Why does it matter?"><div className="text-xs text-slate-700">{finding.label === "Restricted" ? "Regulated data (PHI, payment or genetic). Exposure through this path creates breach-notification duties, DPDP penalties and PCI-DSS non-compliance. " : "Personal data with confidentiality obligations under DPDP and GDPR. "}{pol.reason}</div><div className="text-[11px] text-slate-500 mt-2"><b>Regulatory scope:</b> {decision.regulatory.join(" · ")}</div></Panel>
+        <Panel title="Why does it matter?"><div className="text-xs text-slate-700">{finding.label === "Restricted" ? "Regulated data (PHI, payment or genetic). Exposure through this path creates breach-notification duties, DPDP penalties, HIPAA violations and PCI-DSS non-compliance. " : "Personal data with confidentiality obligations under DPDP and GDPR. "}{pol.reason}</div><div className="text-[11px] text-slate-500 mt-2"><b>Regulatory scope:</b> {decision.regulatory.join(" · ")}</div></Panel>
         <Panel title="What must I do?"><ol className="text-xs text-slate-700 list-decimal pl-4 space-y-1">{pol.procedure.map((p, i) => <li key={i}>{p}</li>)}</ol></Panel>
       </div>
 

@@ -24,7 +24,7 @@ function Mapping({ store }) {
   const { findings } = store;
   const live = findings.filter((f) => !["Rejected", "Superseded"].includes(f.state));
   return (
-    <Panel title="Regulatory capability mapping — DPDP · GDPR · PCI-DSS" subtitle="Status column is populated live from current findings, not typed in.">
+    <Panel title="Regulatory capability mapping — DPDP · GDPR · PCI-DSS · HIPAA" subtitle="Status column is populated live from current findings, not typed in.">
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
           <thead><tr className="align-top"><Th>Requirement</Th><Th>Citation</Th><Th>AegisData capability</Th><Th>Evidence produced</Th><Th>Live status</Th></tr></thead>
@@ -50,10 +50,10 @@ function Mapping({ store }) {
 function DpoReport({ store, persona }) {
   const { sources, findings, exceptions, tasks, actions } = store;
   const live = findings.filter((f) => !["Rejected", "Superseded"].includes(f.state));
-  const cats = [["DPDP — personal / sensitive data", (f) => ["Restricted", "Confidential"].includes(f.label) && !f.identifierTypes.includes("Card PAN")], ["PCI-DSS — cardholder data", (f) => f.identifierTypes.includes("Card PAN")], ["GDPR Art. 9 — special category (health / genetic)", (f) => f.label === "Restricted" && !f.identifierTypes.includes("Card PAN")]];
+  const cats = [["DPDP — personal / sensitive data", (f) => ["Restricted", "Confidential"].includes(f.label) && !f.identifierTypes.includes("Card PAN")], ["PCI-DSS — cardholder data", (f) => f.identifierTypes.includes("Card PAN")], ["GDPR Art. 9 — special category (health / genetic)", (f) => f.label === "Restricted" && !f.identifierTypes.includes("Card PAN")], ["HIPAA — protected health information (PHI)", (f) => f.identifierTypes.includes("MRN")]];
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">{!persona.readOnly && <Button onClick={() => actions.exportEvidencePack("DPO report · DPDP/GDPR/PCI scope · last 90 days")}>Export DPO report (logged)</Button>}</div>
+      <div className="flex justify-end">{!persona.readOnly && <Button onClick={() => actions.exportEvidencePack("DPO report · DPDP/GDPR/PCI/HIPAA scope · last 90 days")}>Export DPO report (logged)</Button>}</div>
       <Panel title="Regulated-data inventory by store" subtitle="RoPA-equivalent view generated from the catalogue. No separate reporting pipeline.">
         <table className="w-full text-xs"><thead><tr><Th>Store</Th><Th>Restricted</Th><Th>Confidential</Th><Th>Owner</Th><Th>Last scan</Th><Th>Coverage</Th></tr></thead>
           <tbody>{sources.map((s) => (
@@ -111,12 +111,12 @@ function AuditorReport({ store, persona }) {
       {pack && (
         <Modal title="Export evidence pack" onClose={() => setPack(false)}>
           <div className="text-xs space-y-2 text-slate-600">
-            <div><span className="text-slate-400">Regulatory scope:</span> DPDP Act 2023, GDPR, PCI-DSS</div>
+            <div><span className="text-slate-400">Regulatory scope:</span> DPDP Act 2023, GDPR, PCI-DSS, HIPAA</div>
             <div><span className="text-slate-400">Time window:</span> Last 90 days</div>
             <div><span className="text-slate-400">Contents:</span> coverage summary, control-effectiveness summary, exception register, {evidence.length} hash-chained evidence events, full audit log</div>
             <div><span className="text-slate-400">Integrity:</span> SHA-256 chain verified at export · watermarked to {store.actor}</div>
             <Note>Producing a report for a regulator is itself an auditable action. This export writes its own evidence event.</Note>
-            <Button onClick={() => { actions.exportEvidencePack("Evidence pack · DPDP/GDPR/PCI · 90 days"); setPack(false); }}>Confirm export</Button>
+            <Button onClick={() => { actions.exportEvidencePack("Evidence pack · DPDP/GDPR/PCI/HIPAA · 90 days"); setPack(false); }}>Confirm export</Button>
           </div>
         </Modal>
       )}

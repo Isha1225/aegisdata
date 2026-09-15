@@ -100,7 +100,7 @@ export const BASE_TAXONOMY = [
   { label: "Public", meaning: "No confidentiality requirement", handling: "Standard controls", crosswalk: "—" },
   { label: "Internal", meaning: "General business data, low sensitivity", handling: "Internal access only", crosswalk: "—" },
   { label: "Confidential", meaning: "Sensitive business or limited personal data", handling: "Restricted access", crosswalk: "DPDP personal data · GDPR personal data" },
-  { label: "Restricted", meaning: "Regulated, high-harm-if-exposed data", handling: "Strong controls + accountability", crosswalk: "PHI · DPDP sensitive data · PCI cardholder data · GDPR Art. 9" },
+  { label: "Restricted", meaning: "Regulated, high-harm-if-exposed data", handling: "Strong controls + accountability", crosswalk: "HIPAA PHI · DPDP sensitive data · PCI cardholder data · GDPR Art. 9" },
 ];
 
 // Policy rules are evaluated by the policy engine when a finding is Confirmed (TSD §6.2).
@@ -120,6 +120,10 @@ export const COMPLIANCE_MAP = [
   { req: "Cardholder data discovery", cite: "PCI-DSS Req. 3, 12", labels: ["Restricted"], identifier: "Card PAN", cap: "Luhn-validated pattern layer + EDM for known card data sets", evidence: "Classification finding + risk score + remediation task" },
   { req: "Access control to regulated data", cite: "PCI-DSS Req. 7/8", labels: ["Restricted"], cap: "Access graph + IAM/PAM webhook triggers on new Restricted stores", evidence: "Access-review task + evidence of review completion" },
   { req: "Audit trail of security-relevant events", cite: "PCI-DSS Req. 10", labels: [], cap: "Append-only, hash-chained audit log", evidence: "Immutable, exportable audit log; SIEM stream" },
+  { req: "Minimum necessary use/disclosure of PHI", cite: "HIPAA Privacy Rule 45 CFR §164.502(b)", labels: ["Restricted"], identifier: "MRN", cap: "Business-context tagging + access graph scoped to declared purpose", evidence: "Policy record linking store to declared purpose/taxonomy label" },
+  { req: "Administrative, physical, and technical safeguards for ePHI", cite: "HIPAA Security Rule 45 CFR §164.308–312", labels: ["Restricted"], identifier: "MRN", cap: "Encryption, RBAC, scan-in-place architecture, audit logging", evidence: "NFR compliance summary + exportable audit log" },
+  { req: "Audit controls on ePHI access", cite: "HIPAA Security Rule 45 CFR §164.312(b)", labels: ["Restricted"], identifier: "MRN", cap: "Append-only, hash-chained audit log of access and remediation events", evidence: "Immutable, exportable audit log; SIEM stream" },
+  { req: "Breach risk assessment and notification", cite: "HIPAA Breach Notification Rule 45 CFR §164.402", labels: ["Restricted"], identifier: "MRN", cap: "Exposure + confidence scoring on every finding, task timeline from detection to verified closure", evidence: "Task record with detection timestamp, exposure level, and verification event" },
 ];
 
 export const IDENTIFIER_TYPES = ["MRN", "ABHA", "Card PAN", "Phone", "Patient name"];
